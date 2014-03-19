@@ -4,6 +4,7 @@ require 'eventmachine'
 
 module RubyQuest
   class Server < EM::Connection
+    include Logging
     @connected_clients = []
 
     attr_reader :username
@@ -15,13 +16,13 @@ module RubyQuest
     def post_init
       @username = nil
       
-      puts 'A client has connected.'
+      logger.info 'A client has connected.'
       ask_username
     end
 
     def unbind
       self.class.connected_clients.delete(self)
-      puts "[info] #{@username} has disconnected." if entered_username?
+      logger.info "[info] #{@username} has disconnected." if entered_username?
     end
 
     def receive_data(data)
@@ -42,7 +43,7 @@ module RubyQuest
 
     def entered_username?
       !@username.nil? && !@username.empty?
-    end # entered_username?
+    end
 
     def handle_username(input)
       if input.empty?
@@ -56,11 +57,11 @@ module RubyQuest
 
         self.send_line("[info] Ohai, #{@username}")
       end
-    end # handle_username(input)
+    end
 
     def ask_username
       self.send_line("[info] Enter your username:")
-    end # ask_username
+    end
 
     #
     # Message handling
@@ -81,13 +82,13 @@ module RubyQuest
 
     def command?(input)
       input =~ /exit$/i
-    end # command?(input)
+    end
 
     def handle_command(cmd)
       case cmd
       when /exit$/i   then self.close_connection
       end
-    end # handle_command(cmd)
+    end
 
     #
     # Helpers
@@ -95,14 +96,14 @@ module RubyQuest
 
     def announce(msg = nil, prefix = "[chat server]")
       self.class.connected_clients.each { |c| c.send_line("#{prefix} #{msg}") } unless msg.empty?
-    end # announce(msg)
+    end
 
     def other_peers
       self.class.connected_clients.reject { |c| self == c }
-    end # other_peers
+    end
 
     def send_line(line)
       self.send_data("#{line}\n")
-    end # send_line(line)
+    end
   end
 end
