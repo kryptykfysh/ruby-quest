@@ -1,6 +1,14 @@
 require 'logger'
  
 module Logging
+  LOG_LEVELS = {
+    'debug'   => Logger::DEBUG,
+    'info'    => Logger::INFO,
+    'warn'    => Logger::WARN, 
+    'error'   => Logger::ERROR,
+    'fatal'   => Logger::FATAL,
+    'unknown' => Logger::UNKNOWN
+  }
   class MultiDelegator
     def initialize(*targets)
       @targets = targets
@@ -43,6 +51,7 @@ module Logging
       file.sync = true
       logger = Logger.new MultiDelegator.delegate(:write, :close).to(STDOUT, file)
       logger.progname = classname
+      logger.level = LOG_LEVELS[ENV['LOG_LEVEL']]
       logger
     end
   end

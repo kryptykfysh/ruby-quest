@@ -1,6 +1,14 @@
 #!/usr/bin/env ruby
 # excoding: UTF-8
 
+require_relative '../lib/ruby_quest/startup_options'
+
+options = RubyQuest::StartupOptions.parse(ARGV)
+pp options
+ENV['ENVIRONMENT'] = options['environment']
+ENV['LOG_LEVEL'] = options['log_level']
+
+require_relative '../lib/logging'
 require_relative '../lib/ruby_quest'
 include Logging
 
@@ -21,5 +29,5 @@ EventMachine.run do
   Signal.trap("INT")  { EventMachine.stop }
   Signal.trap("TERM") { EventMachine.stop }
 
-  EventMachine.start_server("0.0.0.0", 10000, RubyQuest::Server)
+  EventMachine.start_server("0.0.0.0", options['port'], RubyQuest::Server)
 end
