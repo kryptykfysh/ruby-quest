@@ -2,9 +2,10 @@
 # excoding: UTF-8
 
 require_relative '../lib/ruby_quest'
+include Logging
 
 ENVIRONMENTS = %w(test development production)
-APP_PATH = File.expand_path('../', File.dir_name(__FILE__))
+APP_PATH = File.expand_path('../', File.dirname(__FILE__))
 
 if ARGV[0] && ENVIRONMENTS.include?(ARGV[0])
   ENV['ENVIRONMENT'] = ARGV[0]
@@ -15,6 +16,7 @@ end
 puts ENV['ENVIRONMENT']
 
 EventMachine.run do
+  logger.warn 'Server starting.'
   # hit Control + C to stop
   Signal.trap("INT")  { EventMachine.stop }
   Signal.trap("TERM") { EventMachine.stop }
