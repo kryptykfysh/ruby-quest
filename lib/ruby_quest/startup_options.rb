@@ -1,12 +1,11 @@
 module RubyQuest
   require 'optparse'
-  require 'pp'
 
   class StartupOptions
     def self.parse(args)
       # Set default values
       options = {}
-      options['log_level'] = 'warn'
+      options['log_level'] = 'info'
       options['port_number'] = 10_000
       options['environment'] = 'development'
 
@@ -20,7 +19,7 @@ module RubyQuest
           %w[debug info warn error fatal unknown],
           'Select log level from (most to least):',
           '  debug, info, warn, error, fatal, unknown',
-          'The default is :warn') do |log_level|
+          'The default is :info') do |log_level|
           options['log_level'] = log_level
         end
 

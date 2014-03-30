@@ -1,10 +1,11 @@
 #!/usr/bin/env ruby
 # excoding: UTF-8
 
+require 'rake'
+require_relative '../lib/ruby_quest/startup_options'
 require_relative '../lib/ruby_quest/startup_options'
 
 options = RubyQuest::StartupOptions.parse(ARGV)
-pp options
 ENV['ENVIRONMENT'] = options['environment']
 ENV['LOG_LEVEL'] = options['log_level']
 
@@ -12,22 +13,29 @@ require_relative '../lib/logging'
 require_relative '../lib/ruby_quest'
 include Logging
 
-ENVIRONMENTS = %w(test development production)
 APP_PATH = File.expand_path('../', File.dirname(__FILE__))
 
-if ARGV[0] && ENVIRONMENTS.include?(ARGV[0])
-  ENV['ENVIRONMENT'] = ARGV[0]
-else
-  ENV['ENVIRONMENT'] = 'production'
+logger.info 'Checking database connection'
+begin
+  RubyQuest::Character.all.first.name
+  logger.info 'Database connection successful.'
+rescue => e
+  logger.error "Database connection failed.\n" \
+    "Try running rake db:setup or rake db:migrate.\n" \
+    "Error: #{e}"
+  exit
 end
 
-puts ENV['ENVIRONMENT']
-
 EventMachine.run do
-  logger.warn 'Server starting.'
+  logger.warn "Server starting on port #{options['port']}"
   # hit Control + C to stop
   Signal.trap("INT")  { EventMachine.stop }
   Signal.trap("TERM") { EventMachine.stop }
 
-  EventMachine.start_server("0.0.0.0", options['port'], RubyQuest::Server)
+  class ServerError < StandardError; end
+  begin
+    EventMachine.start_server("0.0.0.0", options['port'], RubyQuest::Server)
+  rescue ServerError => e
+    logger.error "An error occurred starting the server. #{e}"
+  end
 end
