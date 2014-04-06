@@ -9,6 +9,7 @@ module RubyQuest
     @connected_clients = []
 
     attr_accessor :character
+    attr_accessor :status
 
     class << self
       attr_reader :connected_clients
@@ -16,6 +17,7 @@ module RubyQuest
 
     def post_init
       @character = nil
+      @status = {}
       
       logger.info 'A client has connected.'
       # ask_username
@@ -81,6 +83,23 @@ module RubyQuest
       login_regex = /\Aconnect\s+(?<name>\w+)\s+(?<password>\w+)\z/i
       if logged_in?
         handle_chat_message(data.strip)
+      elsif self.status[:confirm_character_creation]
+        if data.strip.downcase == 'y'
+          character = Character.create(
+            name:       status[:confirm_character_creation][:name],
+            password:   status[:confirm_character_creation][:password],
+            connection: self
+          )
+          character.connection = self
+          self.character = character
+          self.class.connected_clients << self
+          logger.info "#{self.character.name.capitalize} connected from " \
+            "#{Socket.unpack_sockaddr_in(get_peername)[1]}"
+          self.send_line "Welcome, #{character.name.capitalize}!"
+        else
+          self.login
+        end
+        self.status.delete(:confirm_character_creation)
       elsif data.strip =~ login_regex
         matches = data.strip.match(login_regex)
         login_result = Character.login(

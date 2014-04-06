@@ -9,10 +9,21 @@ module RubyQuest
 
     def self.login(name:, password:, connection:)
       character = Character.find_by(name: name.downcase)
-      if character && 
-        authenticates?(character: character, password: password)
-        character.connection = connection
-        character.connection.send_line "Welcome back, #{character.name.capitalize}!"
+      if character
+        if authenticates?(character: character, password: password)
+          character.connection = connection
+          character.connection.send_line "Welcome back, #{character.name.capitalize}!"
+        else
+          connection.send_line "Invalid credentials."
+          connection.login
+        end
+      else
+        connection.send_line  "This character does not yet exist.\n" \
+                              "Create it? (Y/N)"
+        connection.status[:confirm_character_creation] = {
+                              name:     name,
+                              password: password
+                            }
       end
       character ? character.id : nil
     end
