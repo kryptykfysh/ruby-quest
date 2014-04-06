@@ -14,7 +14,9 @@
 ActiveRecord::Schema.define(version: 1) do
 
   create_table "characters", force: true do |t|
-    t.string   "name",       null: false
+    t.string   "name",            null: false
+    t.string   "password_digest", null: false
+    t.string   "password_salt",   null: false
     t.datetime "created_at"
     t.datetime "updated_at"
   end

@@ -6,6 +6,7 @@ require_relative '../lib/ruby_quest/startup_options'
 require_relative '../lib/ruby_quest/startup_options'
 
 options = RubyQuest::StartupOptions.parse(ARGV)
+
 ENV['ENVIRONMENT'] = options['environment']
 ENV['LOG_LEVEL'] = options['log_level']
 
@@ -27,14 +28,14 @@ rescue => e
 end
 
 EventMachine.run do
-  logger.warn "Server starting on port #{options['port']}"
+  logger.warn "Server starting on port #{options['port_number']}"
   # hit Control + C to stop
   Signal.trap("INT")  { EventMachine.stop }
   Signal.trap("TERM") { EventMachine.stop }
 
   class ServerError < StandardError; end
   begin
-    EventMachine.start_server("0.0.0.0", options['port'], RubyQuest::Server)
+    EventMachine.start_server("0.0.0.0", options['port_number'], RubyQuest::Server)
   rescue ServerError => e
     logger.error "An error occurred starting the server. #{e}"
   end

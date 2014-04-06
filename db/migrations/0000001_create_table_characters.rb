@@ -2,6 +2,8 @@ class CreateTableCharacters < ActiveRecord::Migration
   def change
     create_table :characters do |t|
       t.string :name, null: false
+      t.string :password_digest, null:false
+      t.string :password_salt, null: false
 
       t.timestamps
     end

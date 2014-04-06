@@ -1,37 +1,39 @@
 # encoding: UTF-8
 
 require 'eventmachine'
+require 'socket'
 
 module RubyQuest
   class Server < EM::Connection
     include Logging
     @connected_clients = []
 
-    attr_reader :username
+    attr_accessor :character
 
     class << self
       attr_reader :connected_clients
     end
 
     def post_init
-      @username = nil
+      @character = nil
       
       logger.info 'A client has connected.'
-      ask_username
+      # ask_username
+      login
     end
 
     def unbind
       self.class.connected_clients.delete(self)
-      logger.info "[info] #{@username} has disconnected." if entered_username?
+      logger.info "[info] #{@character.name} has disconnected." if entered_username?
     end
 
-    def receive_data(data)
-      if entered_username?
-        handle_chat_message(data.strip)
-      else
-        handle_username(data.strip)
-      end
-    end
+    # def receive_data(data)
+    #   if entered_username?
+    #     handle_chat_message(data.strip)
+    #   else
+    #     handle_username(data.strip)
+    #   end
+    # end
 
     def other_peers
       self.class.connected_clients.reject { |c| self == c }
@@ -64,6 +66,40 @@ module RubyQuest
     end
 
     #
+    # Character handling
+    #
+
+    def login
+      self.send_line("[login] Login with 'connect character password'" )
+    end
+
+    def logged_in?
+      !self.character.nil? && !self.character.name.empty?
+    end
+
+    def receive_data(data)
+      login_regex = /\Aconnect\s+(?<name>\w+)\s+(?<password>\w+)\z/i
+      if logged_in?
+        handle_chat_message(data.strip)
+      elsif data.strip =~ login_regex
+        matches = data.strip.match(login_regex)
+        login_result = Character.login(
+          connection: self,
+          name: matches[:name],
+          password: matches[:password]
+        )
+        if login_result          
+          self.class.connected_clients << self
+          self.character = Character.find(login_result)
+          logger.info "#{self.character.name.capitalize} connected from " \
+            "#{Socket.unpack_sockaddr_in(get_peername)[1]}"
+        end
+      else        
+        login
+      end
+    end
+
+    #
     # Message handling
     #
 
@@ -71,7 +107,7 @@ module RubyQuest
       if command?(msg)
         self.handle_command(msg)
       else
-        self.announce(msg, "#{@username}:")
+        self.announce(msg, "#{@character.name.capitalize}:")
       end
     end
 

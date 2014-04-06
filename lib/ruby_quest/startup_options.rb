@@ -6,7 +6,7 @@ module RubyQuest
       # Set default values
       options = {}
       options['log_level'] = 'info'
-      options['port_number'] = 10_000
+      options['port_number'] = 9999
       options['environment'] = 'development'
 
       opt_parser = OptionParser.new do |opts|
@@ -26,7 +26,7 @@ module RubyQuest
         opts.on('-p', '--port N',
           Integer,
           'Port for server to listen on.',
-          'Default is 10000') do |port|
+          'Default is 9999') do |port|
           options['port_number'] = port
         end
 

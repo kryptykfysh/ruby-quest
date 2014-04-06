@@ -10,6 +10,8 @@ gem 'eventmachine'
 # database
 gem 'activerecord'
 
+gem 'bcrypt-ruby'
+
 group :development, :test do
   gem 'sqlite3'
   gem 'factory_girl'
