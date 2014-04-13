@@ -17,7 +17,7 @@ module RubyQuest
 
     def post_init
       @character = nil
-      @status = {}
+      @status = { logged_in: false }
       
       logger.info 'A client has connected.'
       # ask_username
@@ -29,42 +29,8 @@ module RubyQuest
       logger.info "[info] #{@character.name} has disconnected." if entered_username?
     end
 
-    # def receive_data(data)
-    #   if entered_username?
-    #     handle_chat_message(data.strip)
-    #   else
-    #     handle_username(data.strip)
-    #   end
-    # end
-
     def other_peers
       self.class.connected_clients.reject { |c| self == c }
-    end
-
-    #
-    # Username handling
-    #
-
-    def entered_username?
-      !@username.nil? && !@username.empty?
-    end
-
-    def handle_username(input)
-      if input.empty?
-        send_line("Blank usernames are not allowed. Try again.")
-        ask_username
-      else
-        @username = input
-        self.class.connected_clients.push(self)
-        self.other_peers.each { |c| c.send_data("#{@username} has joined the room\n") }
-        puts "#{@username} has joined"
-
-        self.send_line("[info] Ohai, #{@username}")
-      end
-    end
-
-    def ask_username
-      self.send_line("[info] Enter your username:")
     end
 
     #
@@ -76,11 +42,11 @@ module RubyQuest
     end
 
     def logged_in?
-      !self.character.nil? && !self.character.name.empty?
+      self.status[:logged_in]
     end
 
     def receive_data(data)
-      login_regex = /\Aconnect\s+(?<name>\w+)\s+(?<password>\w+)\z/i
+      login_regex = /\Aconnect\s+(?<name>\w+)\s+(?<password>\S+)\z/i
       if logged_in?
         handle_chat_message(data.strip)
       elsif self.status[:confirm_character_creation]

@@ -6,7 +6,70 @@ module RubyQuest
   describe Character do
     let(:character) { create :character }
 
-    describe 'methods and attributes' do
+    describe 'class methods and attributes' do
+      subject { character.class }
+
+      it { should respond_to :login }
+
+      describe ':login' do
+        context 'with invalid credentials' do
+          let(:password) { 'not_correct_password' }
+          before(:each) do
+            @conn = double(
+              'RubyQuest::Server',
+              login: true,
+              send_line: true
+            ).as_null_object
+            @conn.stub(:status)
+          end
+
+          it 'should return nil' do
+            Character.login(
+              name: character.name,
+              password: password,
+              connection: @conn
+            ).should be_nil
+          end
+
+          it 'should send a failure message' do
+            @conn.should receive(:send_line).with('Invalid credentials.')
+            Character.login(
+              name: character.name,
+              password: password,
+              connection: @conn
+            )            
+          end
+
+          it 'should send the login message again' do
+            @conn.should receive(:login)
+            Character.login(
+              name: character.name,
+              password: password,
+              connection: @conn
+            )
+          end
+        end
+
+        context 'with an unrecognised character name' do
+          let(:name) { 'NotACreatedCharacter' }
+
+          it 'should ask to create a new character' do
+            pending 'Bloody annoying attribute set error.'
+            @conn.should_receive(:send_line).with(
+              "This character does not yet exist.\n" \
+              "Create it? (Y/N)"
+            )
+            Character.login(
+              name: name,
+              password: character.password,
+              connection: @conn
+            )
+          end
+        end
+      end
+    end
+
+    describe 'instance methods and attributes' do
       it { should respond_to :name }
       it { should respond_to :connection }
 

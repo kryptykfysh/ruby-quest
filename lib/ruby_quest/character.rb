@@ -13,9 +13,11 @@ module RubyQuest
         if authenticates?(character: character, password: password)
           character.connection = connection
           character.connection.send_line "Welcome back, #{character.name.capitalize}!"
+          return character.id
         else
           connection.send_line "Invalid credentials."
           connection.login
+          return nil
         end
       else
         connection.send_line  "This character does not yet exist.\n" \
@@ -24,8 +26,8 @@ module RubyQuest
                               name:     name,
                               password: password
                             }
+        return nil
       end
-      character ? character.id : nil
     end
 
     private
