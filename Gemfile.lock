@@ -1,3 +1,11 @@
+PATH
+  remote: .
+  specs:
+    ruby_quest (0.0.1)
+      activerecord
+      bcrypt-ruby
+      eventmachine
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -24,8 +32,6 @@ GEM
     builder (3.1.4)
     database_cleaner (1.2.0)
     diff-lcs (1.2.5)
-    em-rspec (0.1.1)
-      eventmachine (>= 0.12.10)
     eventmachine (1.0.3)
     factory_girl (4.4.0)
       activesupport (>= 3.0.0)
@@ -52,13 +58,11 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  activerecord
-  bcrypt-ruby
+  bundler (~> 1.5)
   database_cleaner
-  em-rspec
-  eventmachine
   factory_girl
   faker
   rake
   rspec
+  ruby_quest!
   sqlite3
